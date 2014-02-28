@@ -1,18 +1,24 @@
 <html>
   <head>
     <title><%= title %></title>
-    <link rel="stylesheet" type="text/css" href="stylesheets/style.css">
     <link rel="stylesheet" type="text/css" href="stylesheets/group_chat.css">
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script>
      io = io.connect('http://localhost:3000');
      var name = prompt('What is your name?');
+     var room = prompt('List of Available Chat Rooms: Programmers, Artists, Athletes, Plummers');
      $(document).ready(function(){
+      console.log(name);
+      console.log(room);
 
-      io.emit('new_user', {name: name});
+        /// when new user joins ///
+      io.emit('new_user', {name: name, room: room});
+
+      $('#heading').append(room);
 
       io.on('existing_users', function(users){
+
         for (i in users)
         {
           console.log(users);
@@ -21,20 +27,23 @@
       })
 
       io.on('show_new_user', function(user){
+        
         $('#users').append("<p id='"+user.id+"'>"+user.name+"</p>");
+        $('#messages').append("<p style='color: green'>*** <b>"+user.name+"</b> has joined the room. ***</p>");
+        $('#messages').scrollTop($('#messages').height());
       })
 
       io.on('existing_messages', function(messages){
         for(i in messages)
         {
-          console.log('messages');
           $('#messages').append("<p><b>"+messages[i].name+":</b> " + messages[i].message+"</p>");
         }
       })
 
+      /// sending new message /// 
      $('#submit').submit(function(){
         message = $('#new_message').val();
-        io.emit('new_message', {name: name, message: message});
+        io.emit('new_message', {name: name, message: message, room: room});
 
         $('#new_message').val('');
         return false;
@@ -42,6 +51,7 @@
 
      io.on('updated_message', function(message){
       // console.log('MESSAGE!!!!', message);
+      console.log('got here');
       $('#messages').append("<p><b>"+message.name+":</b> " + message.message+"</p>");
       $('#messages').scrollTop($('#messages').height());
      })
@@ -60,8 +70,9 @@
   </head>
   <body>
     <div id='container'>
+
     <div id='left'>
-      <h2>Group Chat </h2>
+      <h2 id='heading'>Group Chat: </h2>
       <div id='messages'></div>
     </div>
 
